@@ -13,12 +13,6 @@ export NVM_DIR=~/.nvm
 NVM=$(command -v nvm)
 BREW=$(command -v brew)
 
-# echo $NVM
-# echo $BREW
-# echo $NODE
-# echo $NODEVERSION
-# exit 0
-
 vercomp () {
   if [[ $1 == $2 ]]
   then
@@ -88,10 +82,6 @@ if [ "$BREW" = "" ]; then
 else
   echo "\n\nHomebrew already installed\n\n"
 fi
-
-
-echo Should not get here if Node or NVM installed
-exit 0
 
 brew install nvm
 

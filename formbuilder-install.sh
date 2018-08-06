@@ -59,9 +59,51 @@ What is your repo's address?
 REPODIR="${REPOADDRESS//.git}"
 REPODIR=$(sed s/.*\\///g <<<$REPODIR)
 
+echo "\n\nDo you want to check out the example service (fb-example-service)?\n\n"
+select fbExample in "Yes" "No"; do
+  case $fbExample in
+    Yes ) EXAMPLECLONE="yes"; break;;
+    No ) break;;
+  esac
+done
 
-sh $SCRIPTDIR/node-install.sh && source ~/.bash_profile && sh $SCRIPTDIR/editor-install.sh $EDITORLOCATION && sh $SCRIPTDIR/duplicate-repository.sh $REPOLOCATION $REPOADDRESS
+loadNVM () {
+  NVM_DIR=~/.nvm
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # try loading NVM from ~/.nvm
+  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh" # try loading NVM from /usr/local/opt
+  NVM=$(command -v nvm)
+  if [ "$NVM" != "" ]; then
+    echo 'Reloading nvm'
+    nvm use stable
+  fi
+}
+
+sh $SCRIPTDIR/node-install.sh
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+# source ~/.bash_profile
+loadNVM
+
+sh $SCRIPTDIR/editor-install.sh $EDITORLOCATION
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+sh $SCRIPTDIR/duplicate-repository.sh $REPOLOCATION $REPOADDRESS
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+
+if [ "$EXAMPLECLONE" != "" ]; then
+  git clone https://github.com/ministryofjustice/fb-example-service.git
+  EXAMPLESTART="\n\nExample service can be run with the following command\n\nSERVICEDATA=$REPOLOCATION/fb-example-service npm start\n\n--------------------------------------"
+fi
+
 
 SERVICEDATA=$REPOLOCATION/$REPODIR
 # need to get repo name back
-echo "Kill this window and open a new one\n\ncd $EDITORLOCATION/fb-editor-node\n\nSERVICEDATA=$SERVICEDATA npm start"
+CDEDITOR="cd $EDITORLOCATION/fb-editor-node"
+STARTEDITOR="SERVICEDATA=$SERVICEDATA npm start"
+
+echo "\n\n\n\n--------------------------------------\n\nInstructions to run the Form Builder editor\n\n$CDEDITOR\n\n$STARTEDITOR\n\nNB. You will have to close this window and start a new terminal session if you did not have Node installed previously\n\n--------------------------------------$EXAMPLESTART\n\n\n\nStarting the editor now\n\n\n\n"
+
+cd $EDITORLOCATION/fb-editor-node
+
+SERVICEDATA=$SERVICEDATA npm start
